@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Todo App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="container">
+    <h2>Todo List</h2>
+
+    <div class="inputs">
+        <input id="taskId" placeholder="Task ID">
+        <input id="taskText" placeholder="Task text">
+    </div>
+
+    <div class="buttons">
+        <button class="primary" onclick="addTask()">Add</button>
+        <button class="secondary" onclick="updateTask()">Update</button>
+        <button class="accent" onclick="deleteTask()">Delete</button>
+        <button class="clear" onclick="clearFields()">Clear Fields</button>
+    </div>
+
+    <p id="message"></p>
+    <ul id="taskList"></ul>
+</div>
+
+<script>
+const API = "http://127.0.0.1:3000/tasks";
+
+function setLoading(isLoading) {
+    document.querySelectorAll("button").forEach(btn => {
+        btn.disabled = isLoading;
+    });
+}
+
+function showMessage(msg, type = "success") {
+    const el = document.getElementById("message");
+    el.innerText = msg;
+    el.className = type;
+
+    setTimeout(() => {
+        el.innerText = "";
+        el.className = "";
+    }, 3000);
+}
+
+function clearFields() {
+    document.getElementById("taskId").value = "";
+    document.getElementById("taskText").value = "";
+    showMessage("Fields Cleared", "success");
+}
+
+async function loadTasks() {
+    try {
+        const res = await fetch(API);
+        const tasks = await res.json();
+
+        const list = document.getElementById("taskList");
+        list.innerHTML = "";
+
+        tasks.forEach(t => {
+            const li = document.createElement("li");
+            li.innerText = `${t.id} - ${t.text}`;
+            list.appendChild(li);
+        });
+
+    } catch {
+        showMessage("Server not reachable", "error");
+    }
+}
+
+async function addTask() {
+    const id = document.getElementById("taskId").value.trim();
+    const text = document.getElementById("taskText").value.trim();
+
+    if (!id || !text) {
+        showMessage("ID and text are required", "error");
+        return;
+    }
+
+    setLoading(true);
+
+    const res = await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, text })
+    });
+
+    const data = await res.json();
+    setLoading(false);
+
+    if (res.ok) {
+        showMessage("Task Added", "success");
+        loadTasks();
+    } else {
+        showMessage(data.message, "error");
+    }
+}
+
+async function updateTask() {
+    const id = document.getElementById("taskId").value.trim();
+    const text = document.getElementById("taskText").value.trim();
+
+    if (!id || !text) {
+        showMessage("ID and new text required", "error");
+        return;
+    }
+
+    setLoading(true);
+
+    const res = await fetch(`${API}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+    });
+
+    const data = await res.json();
+    setLoading(false);
+
+    if (res.ok) {
+        showMessage("Task Updated", "success");
+        loadTasks();
+    } else {
+        showMessage(data.message, "error");
+    }
+}
+
+async function deleteTask() {
+    const id = document.getElementById("taskId").value.trim();
+
+    if (!id) {
+        showMessage("Please enter an ID to delete", "error");
+        return;
+    }
+
+    setLoading(true);
+
+    const res = await fetch(`${API}/${id}`, {
+        method: "DELETE"
+    });
+
+    const data = await res.json();
+    setLoading(false);
+
+    if (res.ok) {
+        showMessage("DELETED", "success");
+        loadTasks();
+    } else {
+        showMessage(data.message, "error");
+    }
+}
+
+loadTasks();
+</script>
+
+</body>
+</html>
