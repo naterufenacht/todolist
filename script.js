@@ -1,3 +1,7 @@
+// =====================
+// STORAGE HELPERS
+// =====================
+
 function getTasksFromStorage() {
     return JSON.parse(localStorage.getItem("tasks")) || [];
 }
@@ -6,8 +10,16 @@ function saveTasksToStorage(tasks) {
     localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
+// =====================
+// STATE
+// =====================
+
 let selectedTaskId = null;
 let currentFilter = "all";
+
+// =====================
+// UI HELPERS
+// =====================
 
 function showMessage(msg, type = "success") {
     const el = document.getElementById("message");
@@ -35,35 +47,47 @@ function sortByPriority(tasks) {
     return tasks.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
 }
 
-async function loadTasks() {
+// =====================
+// CORE: LOAD + RENDER
+// =====================
+
+function loadTasks() {
     let tasks = getTasksFromStorage();
 
-    const searchText = document.getElementById("searchInput").value.toLowerCase();
+    const searchInput = document.getElementById("searchInput");
+    const searchText = searchInput ? searchInput.value.toLowerCase() : "";
 
+    // Search filter
     if (searchText) {
         tasks = tasks.filter(t =>
             t.text.toLowerCase().includes(searchText)
         );
     }
 
+    // Priority filter
     if (currentFilter !== "all") {
         tasks = tasks.filter(t => t.priority === currentFilter);
     }
 
+    // Sort
     tasks = sortByPriority(tasks);
 
     const list = document.getElementById("taskList");
     const emptyState = document.getElementById("emptyState");
 
+    if (!list) return; // safety guard
+
     list.innerHTML = "";
 
+    // Empty state
     if (tasks.length === 0) {
-        emptyState.style.display = "block";
+        if (emptyState) emptyState.style.display = "block";
         return;
     } else {
-        emptyState.style.display = "none";
+        if (emptyState) emptyState.style.display = "none";
     }
 
+    // Render tasks
     tasks.forEach(task => {
         const li = document.createElement("li");
         li.classList.add("task-item", task.priority);
@@ -72,21 +96,23 @@ async function loadTasks() {
             li.classList.add("selected");
         }
 
+        // Task text
         const textSpan = document.createElement("span");
         textSpan.className = "task-text";
         textSpan.innerText = task.text;
         textSpan.setAttribute("tabindex", "0");
 
         textSpan.onclick = () => enterEditMode(task);
-
         textSpan.onkeypress = (e) => {
             if (e.key === "Enter") enterEditMode(task);
         };
 
+        // Priority tag
         const priorityTag = document.createElement("span");
         priorityTag.className = `priority-tag ${task.priority}`;
         priorityTag.innerText = task.priority.toUpperCase();
 
+        // Delete button
         const deleteBtn = document.createElement("button");
         deleteBtn.className = "delete-btn";
         deleteBtn.innerText = "Delete";
@@ -100,86 +126,22 @@ async function loadTasks() {
     });
 }
 
-    // Search filtering
-    if (searchText) {
-        tasks = tasks.filter(t =>
-            t.text.toLowerCase().includes(searchText)
-        );
-    }
-
-    // Priority filtering
-    if (currentFilter !== "all") {
-        tasks = tasks.filter(t => t.priority === currentFilter);
-    }
-
-    // Sort by priority
-    tasks = sortByPriority(tasks);
-
-    const list = document.getElementById("taskList");
-    const emptyState = document.getElementById("emptyState");
-
-    list.innerHTML = "";
-
-    // Empty state logic
-    if (tasks.length === 0) {
-        emptyState.style.display = "block";
-        return;
-    } else {
-        emptyState.style.display = "none";
-    }
-
-    for (let i = 0; i < tasks.length; i++) {
-        const task = tasks[i];
-
-        const li = document.createElement("li");
-        li.classList.add("task-item", task.priority);
-
-        if (task.id === selectedTaskId) {
-            li.classList.add("selected");
-        }
-
-        // Task text (click to edit)
-        const textSpan = document.createElement("span");
-        textSpan.className = "task-text";
-        textSpan.innerText = task.text;
-        textSpan.setAttribute("tabindex", "0");
-
-        textSpan.onclick = () => enterEditMode(task);
-
-        textSpan.onkeypress = (e) => {
-            if (e.key === "Enter") {
-                enterEditMode(task);
-            }
-        };
-
-        // Priority tag
-        const priorityTag = document.createElement("span");
-        priorityTag.className = `priority-tag ${task.priority}`;
-        priorityTag.innerText = task.priority.toUpperCase();
-
-        // Delete button (per assignment transcript)
-        const deleteBtn = document.createElement("button");
-        deleteBtn.className = "delete-btn";
-        deleteBtn.innerText = "Delete";
-        deleteBtn.onclick = () => deleteTask(task.id);
-
-        li.appendChild(textSpan);
-        li.appendChild(priorityTag);
-        li.appendChild(deleteBtn);
-
-        list.appendChild(li);
-    }
+// =====================
+// TASK ACTIONS
+// =====================
 
 function enterEditMode(task) {
     selectedTaskId = task.id;
+
     document.getElementById("taskText").value = task.text;
     document.getElementById("taskPriority").value = task.priority;
     document.getElementById("updateBtn").disabled = false;
+
     showMessage("Editing task — press Update to save");
     loadTasks();
 }
 
-async function addTask() {
+function addTask() {
     const text = document.getElementById("taskText").value.trim();
     const priority = document.getElementById("taskPriority").value;
 
@@ -204,7 +166,7 @@ async function addTask() {
     loadTasks();
 }
 
-async function updateTask() {
+function updateTask() {
     const text = document.getElementById("taskText").value.trim();
     const priority = document.getElementById("taskPriority").value;
 
@@ -228,7 +190,7 @@ async function updateTask() {
     loadTasks();
 }
 
-async function deleteTask(id) {
+function deleteTask(id) {
     let tasks = getTasksFromStorage();
 
     tasks = tasks.filter(task => task.id !== id);
@@ -239,12 +201,24 @@ async function deleteTask(id) {
     loadTasks();
 }
 
+// =====================
+// UTIL
+// =====================
+
 function clearFields() {
     selectedTaskId = null;
+
     document.getElementById("taskText").value = "";
     document.getElementById("taskPriority").value = "low";
     document.getElementById("updateBtn").disabled = true;
+
     showMessage("Fields Cleared");
 }
 
-loadTasks();
+// =====================
+// INIT
+// =====================
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadTasks();
+});
