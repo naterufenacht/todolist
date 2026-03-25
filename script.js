@@ -57,16 +57,19 @@ function loadTasks() {
     const searchInput = document.getElementById("searchInput");
     const searchText = searchInput ? searchInput.value.toLowerCase() : "";
 
+    // 🔍 Search
     if (searchText) {
         tasks = tasks.filter(t =>
             t.text.toLowerCase().includes(searchText)
         );
     }
 
+    // 🎯 Filter by priority only
     if (currentFilter !== "all") {
         tasks = tasks.filter(t => t.priority === currentFilter);
     }
 
+    // 🔽 Sort
     tasks = sortByPriority(tasks);
 
     const list = document.getElementById("taskList");
@@ -91,6 +94,7 @@ function loadTasks() {
             li.classList.add("selected");
         }
 
+        // Task Text
         const textSpan = document.createElement("span");
         textSpan.className = "task-text";
         textSpan.innerText = task.text;
@@ -101,10 +105,12 @@ function loadTasks() {
             if (e.key === "Enter") enterEditMode(task);
         };
 
+        // Priority Tag
         const priorityTag = document.createElement("span");
         priorityTag.className = `priority-tag ${task.priority}`;
         priorityTag.innerText = task.priority.toUpperCase();
 
+        // Delete Button (CRUD: DELETE)
         const deleteBtn = document.createElement("button");
         deleteBtn.className = "delete-btn";
         deleteBtn.innerText = "Delete";
@@ -119,9 +125,10 @@ function loadTasks() {
 }
 
 // =====================
-// TASK ACTIONS
+// TASK ACTIONS (CRUD)
 // =====================
 
+// UPDATE (enter edit mode)
 function enterEditMode(task) {
     selectedTaskId = task.id;
 
@@ -133,6 +140,7 @@ function enterEditMode(task) {
     loadTasks();
 }
 
+// CREATE
 function addTask() {
     const text = document.getElementById("taskText").value.trim();
     const priority = document.getElementById("taskPriority").value;
@@ -158,6 +166,7 @@ function addTask() {
     loadTasks();
 }
 
+// UPDATE (save changes)
 function updateTask() {
     const text = document.getElementById("taskText").value.trim();
     const priority = document.getElementById("taskPriority").value;
@@ -182,6 +191,7 @@ function updateTask() {
     loadTasks();
 }
 
+// DELETE
 function deleteTask(id) {
     let tasks = getTasksFromStorage();
 
@@ -189,7 +199,7 @@ function deleteTask(id) {
 
     saveTasksToStorage(tasks);
 
-    showMessage("DELETED");
+    showMessage("Task Deleted");
     loadTasks();
 }
 

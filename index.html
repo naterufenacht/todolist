@@ -24,6 +24,7 @@
         Tip: Click a task to edit, then press Update.
     </p>
 
+    <!-- Controls -->
     <div class="controls">
         <input id="taskText" placeholder="Enter task...">
 
@@ -40,17 +41,17 @@
         </div>
     </div>
 
-    <!-- Filters -->
+    <!-- Filters (PRIORITY ONLY) -->
     <div class="filters">
         <button id="filter-all" onclick="setFilter('all')">All</button>
         <button id="filter-high" onclick="setFilter('high')">High</button>
         <button id="filter-medium" onclick="setFilter('medium')">Medium</button>
         <button id="filter-low" onclick="setFilter('low')">Low</button>
-        <button id="filter-completed" onclick="setFilter('completed')">Completed</button>
     </div>
 
     <div class="section-divider"></div>
 
+    <!-- Messages -->
     <p id="message"></p>
 
     <!-- Empty State -->
@@ -58,6 +59,7 @@
         No tasks yet — add one above.
     </p>
 
+    <!-- Task List -->
     <ol id="taskList"></ol>
 
 </div>
