@@ -12,14 +12,14 @@
     <h1>Task List</h1>
     <div class="divider"></div>
 
-    <!-- Search (Improvement 4) -->
+    <!-- Search -->
     <input 
         id="searchInput" 
         placeholder="Search tasks by name..." 
         oninput="loadTasks()"
     >
 
-    <!-- Helper Text (Improvement 1) -->
+    <!-- Helper Text -->
     <p class="helper-text">
         Tip: Click a task to edit, then press Update.
     </p>
@@ -40,7 +40,7 @@
         </div>
     </div>
 
-    <!-- Filters (Improvement 3) -->
+    <!-- Filters -->
     <div class="filters">
         <button id="filter-all" onclick="setFilter('all')">All</button>
         <button id="filter-high" onclick="setFilter('high')">High</button>
@@ -53,7 +53,7 @@
 
     <p id="message"></p>
 
-    <!-- Empty State (Improvement 2) -->
+    <!-- Empty State -->
     <p id="emptyState" class="empty-state" style="display:none;">
         No tasks yet — add one above.
     </p>

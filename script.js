@@ -1,4 +1,10 @@
-const API = "/api/tasks";
+function getTasksFromStorage() {
+    return JSON.parse(localStorage.getItem("tasks")) || [];
+}
+
+function saveTasksToStorage(tasks) {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+}
 
 let selectedTaskId = null;
 let currentFilter = "all";
@@ -30,10 +36,69 @@ function sortByPriority(tasks) {
 }
 
 async function loadTasks() {
-    const res = await fetch(API);
-    let tasks = await res.json();
+    let tasks = getTasksFromStorage();
 
     const searchText = document.getElementById("searchInput").value.toLowerCase();
+
+    if (searchText) {
+        tasks = tasks.filter(t =>
+            t.text.toLowerCase().includes(searchText)
+        );
+    }
+
+    if (currentFilter !== "all") {
+        tasks = tasks.filter(t => t.priority === currentFilter);
+    }
+
+    tasks = sortByPriority(tasks);
+
+    const list = document.getElementById("taskList");
+    const emptyState = document.getElementById("emptyState");
+
+    list.innerHTML = "";
+
+    if (tasks.length === 0) {
+        emptyState.style.display = "block";
+        return;
+    } else {
+        emptyState.style.display = "none";
+    }
+
+    tasks.forEach(task => {
+        const li = document.createElement("li");
+        li.classList.add("task-item", task.priority);
+
+        if (task.id === selectedTaskId) {
+            li.classList.add("selected");
+        }
+
+        const textSpan = document.createElement("span");
+        textSpan.className = "task-text";
+        textSpan.innerText = task.text;
+        textSpan.setAttribute("tabindex", "0");
+
+        textSpan.onclick = () => enterEditMode(task);
+
+        textSpan.onkeypress = (e) => {
+            if (e.key === "Enter") enterEditMode(task);
+        };
+
+        const priorityTag = document.createElement("span");
+        priorityTag.className = `priority-tag ${task.priority}`;
+        priorityTag.innerText = task.priority.toUpperCase();
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "delete-btn";
+        deleteBtn.innerText = "Delete";
+        deleteBtn.onclick = () => deleteTask(task.id);
+
+        li.appendChild(textSpan);
+        li.appendChild(priorityTag);
+        li.appendChild(deleteBtn);
+
+        list.appendChild(li);
+    });
+}
 
     // Search filtering
     if (searchText) {
@@ -104,7 +169,6 @@ async function loadTasks() {
 
         list.appendChild(li);
     }
-}
 
 function enterEditMode(task) {
     selectedTaskId = task.id;
@@ -124,19 +188,20 @@ async function addTask() {
         return;
     }
 
-    const res = await fetch(API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, priority })
-    });
+    const tasks = getTasksFromStorage();
 
-    if (res.status === 201) {
-        showMessage("Task Created");
-        clearFields();
-        loadTasks();
-    } else {
-        showMessage("Failed to create task", "error");
-    }
+    const newTask = {
+        id: Date.now(),
+        text,
+        priority
+    };
+
+    tasks.push(newTask);
+    saveTasksToStorage(tasks);
+
+    showMessage("Task Created");
+    clearFields();
+    loadTasks();
 }
 
 async function updateTask() {
@@ -148,32 +213,30 @@ async function updateTask() {
         return;
     }
 
-    const res = await fetch(`${API}/${selectedTaskId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, priority })
-    });
+    let tasks = getTasksFromStorage();
 
-    if (res.status === 200) {
-        showMessage("Task Updated");
-        clearFields();
-        loadTasks();
-    } else {
-        showMessage("Update failed", "error");
-    }
+    tasks = tasks.map(task =>
+        task.id === selectedTaskId
+            ? { ...task, text, priority }
+            : task
+    );
+
+    saveTasksToStorage(tasks);
+
+    showMessage("Task Updated");
+    clearFields();
+    loadTasks();
 }
 
 async function deleteTask(id) {
-    const res = await fetch(`${API}/${id}`, {
-        method: "DELETE"
-    });
+    let tasks = getTasksFromStorage();
 
-    if (res.status === 200) {
-        showMessage("DELETED");
-        loadTasks();
-    } else {
-        showMessage("Delete failed", "error");
-    }
+    tasks = tasks.filter(task => task.id !== id);
+
+    saveTasksToStorage(tasks);
+
+    showMessage("DELETED");
+    loadTasks();
 }
 
 function clearFields() {
