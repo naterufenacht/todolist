@@ -57,29 +57,25 @@ function loadTasks() {
     const searchInput = document.getElementById("searchInput");
     const searchText = searchInput ? searchInput.value.toLowerCase() : "";
 
-    // Search filter
     if (searchText) {
         tasks = tasks.filter(t =>
             t.text.toLowerCase().includes(searchText)
         );
     }
 
-    // Priority filter
     if (currentFilter !== "all") {
         tasks = tasks.filter(t => t.priority === currentFilter);
     }
 
-    // Sort
     tasks = sortByPriority(tasks);
 
     const list = document.getElementById("taskList");
     const emptyState = document.getElementById("emptyState");
 
-    if (!list) return; // safety guard
+    if (!list) return;
 
     list.innerHTML = "";
 
-    // Empty state
     if (tasks.length === 0) {
         if (emptyState) emptyState.style.display = "block";
         return;
@@ -87,7 +83,6 @@ function loadTasks() {
         if (emptyState) emptyState.style.display = "none";
     }
 
-    // Render tasks
     tasks.forEach(task => {
         const li = document.createElement("li");
         li.classList.add("task-item", task.priority);
@@ -96,7 +91,6 @@ function loadTasks() {
             li.classList.add("selected");
         }
 
-        // Task text
         const textSpan = document.createElement("span");
         textSpan.className = "task-text";
         textSpan.innerText = task.text;
@@ -107,12 +101,10 @@ function loadTasks() {
             if (e.key === "Enter") enterEditMode(task);
         };
 
-        // Priority tag
         const priorityTag = document.createElement("span");
         priorityTag.className = `priority-tag ${task.priority}`;
         priorityTag.innerText = task.priority.toUpperCase();
 
-        // Delete button
         const deleteBtn = document.createElement("button");
         deleteBtn.className = "delete-btn";
         deleteBtn.innerText = "Delete";
